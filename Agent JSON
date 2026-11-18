@@ -1,0 +1,896 @@
+{
+  "name": "Google #1 Organic Result Gap Analysis",
+  "description": "Analyze top ranking competitor content to identify gaps, enhance your visibility, and create targeted content briefs for improved ranking and engagement based on realtime HTML scrapes of top ranking web pages, and your domain.",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "position": {
+        "x": -100,
+        "y": 0
+      },
+      "data": {
+        "title": "Start"
+      },
+      "input_variables": [],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+            "name": "Target Keyword",
+            "data_type": "string",
+            "required": true
+          },
+          "expected_output_id": "target_keyword"
+        },
+        {
+          "variable": {
+            "id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+            "name": "User Domain",
+            "data_type": "string",
+            "required": true
+          },
+          "expected_output_id": "user_domain"
+        },
+        {
+          "variable": {
+            "id": "1e13dab3-47ef-4ee6-b75d-7012dd1b4b90",
+            "name": "Brand Name",
+            "data_type": "string",
+            "required": true
+          },
+          "expected_output_id": "brand_name"
+        }
+      ],
+      "deletable": false,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "pBFLlGnXiiNvLNPZNS6mo",
+      "type": "tool:serpapi:google_search",
+      "position": {
+        "x": -150,
+        "y": 156
+      },
+      "data": {
+        "tool_id": "google_search",
+        "provider_id": "serpapi",
+        "title": "Google Search",
+        "tool_parameters": {
+          "include": [
+            "organic_results"
+          ],
+          "location": "United States",
+          "num_results": 3,
+          "search_query": "{{9dae22e7-9a25-411c-9d52-de2babc962e8}}"
+        }
+      },
+      "input_variables": [
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "60c44e5e-8a50-4e87-afaf-75028615e9d9",
+            "name": "node1_output",
+            "data_type": "json",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "XMc1oVj8RL-o_uwU2OA3M",
+      "type": "tool:code_executor:execute_code",
+      "position": {
+        "x": -150,
+        "y": 353
+      },
+      "data": {
+        "tool_id": "execute_code",
+        "tool_parameters": {
+          "code": "function main(node1_output, user_domain) {\n  const data = typeof node1_output === 'string' ? JSON.parse(node1_output) : node1_output;\n  const organicResults = data.organic_results || [];\n  const topResult = organicResults.find(item => item.position === 1);\n  const topURL = topResult ? topResult.link : null;\n\n  let matchesDomain = false;\n  \n  if (topURL && user_domain) {\n    // 1. Normalize the user domain (remove http, www, and trailing slashes)\n    const cleanUserDomain = user_domain.toLowerCase()\n      .replace(/^(https?:\\/\\/)?(www\\.)?/, '')\n      .replace(/\\/$/, '');\n\n    // 2. Check if the topURL contains your clean domain\n    // This handles both root (example.com) and deep links (example.com/blog/...)\n    matchesDomain = topURL.toLowerCase().includes(cleanUserDomain);\n  }\n\n  const now = new Date();\n  const query_date = now.toISOString().split('T')[0];\n\n  return {\n    top_URL: topURL,\n    domain_match: matchesDomain, // This will now correctly return TRUE for deep links\n    query_date: query_date\n  };\n}",
+          "timeout": 120,
+          "language": "javascript",
+          "input_variables": [
+            {
+              "name": "node1_output",
+              "value": "{{60c44e5e-8a50-4e87-afaf-75028615e9d9}}"
+            },
+            {
+              "name": "user_domain",
+              "value": "{{24cb4339-bfb9-4a82-8272-4d0965df80f4}}"
+            }
+          ]
+        },
+        "provider_id": "code_executor",
+        "title": "Parse Top Result"
+      },
+      "input_variables": [
+        {
+          "variable_id": "60c44e5e-8a50-4e87-afaf-75028615e9d9",
+          "required": false
+        },
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "f7447483-60e0-468e-b5db-c9c68f9387db",
+            "name": "top_URL",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "top_URL"
+        },
+        {
+          "variable": {
+            "id": "7401421b-6f44-42d1-a69d-8af8773dd3e6",
+            "name": "domain_match",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "domain_match"
+        },
+        {
+          "variable": {
+            "id": "b75dda58-c97c-4106-980f-3439c9b82089",
+            "name": "query_date",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "query_date"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "8eZDnb4GFrkVu3n0o6_nM",
+      "type": "conditional",
+      "position": {
+        "x": -150,
+        "y": 581
+      },
+      "data": {
+        "cases": [
+          {
+            "case_id": "case_true",
+            "conditions": [
+              {
+                "id": "aSsRSlr_UWuBCaWKKNGgw",
+                "lhs": "{{ 7401421b-6f44-42d1-a69d-8af8773dd3e6 }}",
+                "rhs": true,
+                "comparison_operator": "=="
+              }
+            ],
+            "logical_operator": "and"
+          },
+          {
+            "case_id": "case_false",
+            "conditions": [],
+            "logical_operator": "and"
+          }
+        ],
+        "title": "Conditional"
+      },
+      "input_variables": [
+        {
+          "variable_id": "7401421b-6f44-42d1-a69d-8af8773dd3e6",
+          "required": false
+        }
+      ],
+      "output_variables": [],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "lK2vsNuYHSHikYPkcOtLc",
+      "type": "tool:code_executor:execute_code",
+      "position": {
+        "x": -450,
+        "y": 769
+      },
+      "data": {
+        "tool_id": "execute_code",
+        "tool_parameters": {
+          "code": "def main(user_domain, target_keyword):\n    return {'message': f'Congrats! {user_domain} currently holds the top position for {target_keyword}.'}",
+          "language": "python",
+          "input_variables": [
+            {
+              "name": "user_domain",
+              "value": "{{24cb4339-bfb9-4a82-8272-4d0965df80f4}}"
+            },
+            {
+              "name": "target_keyword",
+              "value": "{{9dae22e7-9a25-411c-9d52-de2babc962e8}}"
+            }
+          ]
+        },
+        "title": "User Domain is #1",
+        "provider_id": "code_executor"
+      },
+      "input_variables": [
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        },
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "3f2f63f0-a9a2-4b6c-861b-29bdbe0c40f1",
+            "name": "Message",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "message"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "jq0OucdUEhkWmZb64SmRo",
+      "type": "tool:firecrawl:scrape",
+      "position": {
+        "x": 150,
+        "y": 769
+      },
+      "data": {
+        "tool_id": "scrape",
+        "tool_parameters": {
+          "url": "{{f7447483-60e0-468e-b5db-c9c68f9387db}}",
+          "formats": "html",
+          "only_main_content": false
+        },
+        "title": "Web Page Scrape",
+        "provider_id": "firecrawl"
+      },
+      "input_variables": [
+        {
+          "variable_id": "f7447483-60e0-468e-b5db-c9c68f9387db",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "cd996570-0331-4af8-871d-dc05eb3fba4e",
+            "name": "scraped_top_url",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "position": {
+        "x": -400,
+        "y": 2398
+      },
+      "data": {
+        "dynamic_output_variable_id": "3f2f63f0-a9a2-4b6c-861b-29bdbe0c40f1",
+        "title": "End",
+        "outputs": [
+          {
+            "key": "message",
+            "required": false,
+            "variable_id": "3f2f63f0-a9a2-4b6c-861b-29bdbe0c40f1"
+          }
+        ]
+      },
+      "input_variables": [
+        {
+          "variable_id": "3f2f63f0-a9a2-4b6c-861b-29bdbe0c40f1",
+          "required": false
+        }
+      ],
+      "output_variables": [],
+      "deletable": false,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "8PcqggtTatkSO6AGb8-6V",
+      "type": "tool:firecrawl:map",
+      "position": {
+        "x": 150,
+        "y": 966
+      },
+      "data": {
+        "title": "Get Sitemap",
+        "tool_parameters": {
+          "url": "{{24cb4339-bfb9-4a82-8272-4d0965df80f4}}",
+          "limit": 5000,
+          "search": "{{9dae22e7-9a25-411c-9d52-de2babc962e8}}"
+        },
+        "provider_id": "firecrawl",
+        "tool_id": "map"
+      },
+      "input_variables": [
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        },
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "f3f47c81-4534-4639-b77f-22bacac757a3",
+            "name": "user_domain_sitemap",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "H-etkrCV5t-LhR51tITU6",
+      "type": "tool:code_executor:execute_code",
+      "position": {
+        "x": 150,
+        "y": 1163
+      },
+      "data": {
+        "tool_id": "execute_code",
+        "tool_parameters": {
+          "code": "function main(user_domain_sitemap) {\n  const s = typeof user_domain_sitemap === 'string' ? user_domain_sitemap : JSON.stringify(user_domain_sitemap ?? '');\n  const matches = s.match(/https?:\\/\\//g);\n  const urlCount = matches ? matches.length : 0;\n\n  return {\n    sitemap_valid: urlCount >= 5\n  };\n}",
+          "timeout": 120,
+          "language": "javascript",
+          "input_variables": [
+            {
+              "name": "user_domain_sitemap",
+              "value": "{{f3f47c81-4534-4639-b77f-22bacac757a3}}"
+            }
+          ]
+        },
+        "provider_id": "code_executor",
+        "title": "Code"
+      },
+      "input_variables": [
+        {
+          "variable_id": "f3f47c81-4534-4639-b77f-22bacac757a3",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "6faab13a-5d9c-454d-b456-d425f58686c5",
+            "name": "sitemap_valid",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "sitemap_valid"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "nK8LD1qrX2Qs7iW7YvMSh",
+      "type": "conditional",
+      "position": {
+        "x": 150,
+        "y": 1391
+      },
+      "data": {
+        "cases": [
+          {
+            "case_id": "case_true",
+            "conditions": [
+              {
+                "id": "BgtCx7wKExyzPNfIDj3sc",
+                "lhs": "{{ 6faab13a-5d9c-454d-b456-d425f58686c5 }}",
+                "rhs": true,
+                "comparison_operator": "=="
+              }
+            ],
+            "logical_operator": "and"
+          },
+          {
+            "case_id": "case_false",
+            "conditions": [],
+            "logical_operator": "and"
+          }
+        ],
+        "title": "Conditional"
+      },
+      "input_variables": [
+        {
+          "variable_id": "6faab13a-5d9c-454d-b456-d425f58686c5",
+          "required": false
+        }
+      ],
+      "output_variables": [],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "ZZJd1MRLyBqsjME5ImjG7",
+      "type": "llm",
+      "position": {
+        "x": -50,
+        "y": 1579
+      },
+      "data": {
+        "title": "Prompt LLM",
+        "model_parameters": {
+          "user_prompt": "Analyze {{cd996570-0331-4af8-871d-dc05eb3fba4e}} from our top competitor for the keyword {{9dae22e7-9a25-411c-9d52-de2babc962e8}}.\nSummarize their top 3 value propositions.\nList the primary 'H2' headers they are using to structure their content.\nIdentify any technical SEO advantages (e.g., specific meta tags or schema).\nReferencing {{f3f47c81-4534-4639-b77f-22bacac757a3}}, find the most semantically similar page to {{f7447483-60e0-468e-b5db-c9c68f9387db}}.\nOutput Format: First, provide the concise report for our tracking database.\nFinal Line: At the very end of your response, provide ONLY the suggested URL on a single line preceded by the tag 'RECOMMENDED_URL:' so I can parse it as a variable.",
+          "system_prompt": "",
+          "enable_web_search": false
+        },
+        "provider": "openai",
+        "structured_output": {
+          "fields": []
+        },
+        "model": "gpt-5.6-luna"
+      },
+      "input_variables": [
+        {
+          "variable_id": "cd996570-0331-4af8-871d-dc05eb3fba4e",
+          "required": false
+        },
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        },
+        {
+          "variable_id": "f3f47c81-4534-4639-b77f-22bacac757a3",
+          "required": false
+        },
+        {
+          "variable_id": "f7447483-60e0-468e-b5db-c9c68f9387db",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "4e5e9169-31b0-4c87-a23c-cfc7905928ae",
+            "name": "LLM_summary",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "iOyKB2sREcWmg2FIFqWBt",
+      "type": "tool:code_executor:execute_code",
+      "position": {
+        "x": 350,
+        "y": 1579
+      },
+      "data": {
+        "tool_id": "execute_code",
+        "tool_parameters": {
+          "code": "def main(user_domain):\n  return {\n    \"message\": \"Run Failed: Invalid Sitemap\"\n  }",
+          "language": "python",
+          "input_variables": [
+            {
+              "name": "user_domain",
+              "value": "{{24cb4339-bfb9-4a82-8272-4d0965df80f4}}"
+            }
+          ]
+        },
+        "provider_id": "code_executor",
+        "title": "Sitemap Issue Message"
+      },
+      "input_variables": [
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "b6a65b90-7ee5-4311-b6fd-3749c589624f",
+            "name": "message",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "message"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "XFuPi87ciyI85hx0RDbFW",
+      "type": "tool:code_executor:execute_code",
+      "position": {
+        "x": -50,
+        "y": 1776
+      },
+      "data": {
+        "title": "Generate Target Internal URL Variable",
+        "tool_id": "execute_code",
+        "tool_parameters": {
+          "code": "function main(LLM_output) {\n  // Finds the line starting with RECOMMENDED_URL: and grabs the link\n  const match = LLM_output.match(/RECOMMENDED_URL:\\s*(https?:\\/\\/[^\\s]+)/);\n  const internalURL = match ? match[1] : \"No match found\";\n\n  return {\n    target_internal_URL: internalURL\n  };\n}",
+          "timeout": 120,
+          "language": "javascript",
+          "input_variables": [
+            {
+              "name": "LLM_output",
+              "value": "{{4e5e9169-31b0-4c87-a23c-cfc7905928ae}}"
+            }
+          ]
+        },
+        "provider_id": "code_executor"
+      },
+      "input_variables": [
+        {
+          "variable_id": "4e5e9169-31b0-4c87-a23c-cfc7905928ae",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "7ffa9317-5090-4969-89f0-f23c52ff873c",
+            "name": "target_internal_URL",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "target_internal_URL"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "end::nK8LD1qrX2Qs7iW7YvMSh::case_false",
+      "type": "end",
+      "position": {
+        "x": 400,
+        "y": 2398
+      },
+      "data": {
+        "outputs": [
+          {
+            "key": "message",
+            "required": false,
+            "variable_id": "b6a65b90-7ee5-4311-b6fd-3749c589624f"
+          }
+        ],
+        "dynamic_output_variable_id": "b6a65b90-7ee5-4311-b6fd-3749c589624f",
+        "title": "End"
+      },
+      "input_variables": [
+        {
+          "variable_id": "b6a65b90-7ee5-4311-b6fd-3749c589624f",
+          "required": false
+        }
+      ],
+      "output_variables": [],
+      "deletable": false,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "x8nlT0z-mEYT2tHIFXVzo",
+      "type": "tool:profound:create_content_brief",
+      "position": {
+        "x": -50,
+        "y": 1973
+      },
+      "data": {
+        "provider_id": "profound",
+        "tool_id": "create_content_brief",
+        "title": "Create Content Brief",
+        "tool_parameters": {
+          "topic": "{{9dae22e7-9a25-411c-9d52-de2babc962e8}}",
+          "prompts": "{{9dae22e7-9a25-411c-9d52-de2babc962e8}}",
+          "citations": "{{f7447483-60e0-468e-b5db-c9c68f9387db}},{{7ffa9317-5090-4969-89f0-f23c52ff873c}}",
+          "platforms": [
+            "Google Gemini",
+            "Google AI Overviews"
+          ],
+          "company_url": "{{24cb4339-bfb9-4a82-8272-4d0965df80f4}}",
+          "company_name": "{{1e13dab3-47ef-4ee6-b75d-7012dd1b4b90}}",
+          "content_type": "General",
+          "article_title": "",
+          "audience_segment": "",
+          "additional_instructions": ""
+        }
+      },
+      "input_variables": [
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        },
+        {
+          "variable_id": "f7447483-60e0-468e-b5db-c9c68f9387db",
+          "required": false
+        },
+        {
+          "variable_id": "7ffa9317-5090-4969-89f0-f23c52ff873c",
+          "required": false
+        },
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        },
+        {
+          "variable_id": "1e13dab3-47ef-4ee6-b75d-7012dd1b4b90",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "186405da-0e12-434d-8e62-c45256a8b269",
+            "name": "Create Content Brief Output",
+            "data_type": "json",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "UN6_Mg9muurMUVia94fQh",
+      "type": "llm",
+      "position": {
+        "x": -50,
+        "y": 2170
+      },
+      "data": {
+        "title": "Condense Brief",
+        "model_parameters": {
+          "user_prompt": "Take the {{186405da-0e12-434d-8e62-c45256a8b269}} and improve its visibility so it can be sent as a streamlined and concise report  - only send the actual report in your response. Do not include emojis\n\nThe title of the content brief should include: {{9dae22e7-9a25-411c-9d52-de2babc962e8}}, {{1e13dab3-47ef-4ee6-b75d-7012dd1b4b90}}\n\nStart the report output with: \"Here is the {{24cb4339-bfb9-4a82-8272-4d0965df80f4}} competitor analysis for \"{{9dae22e7-9a25-411c-9d52-de2babc962e8}}\"\n\nTop Ranking URL: {{f7447483-60e0-468e-b5db-c9c68f9387db}}\nYour Site's Most Semantically Similar URL: {{7ffa9317-5090-4969-89f0-f23c52ff873c}}",
+          "system_prompt": "",
+          "enable_web_search": false
+        },
+        "provider": "openai",
+        "model": "gpt-5.6-luna"
+      },
+      "input_variables": [
+        {
+          "variable_id": "186405da-0e12-434d-8e62-c45256a8b269",
+          "required": false
+        },
+        {
+          "variable_id": "9dae22e7-9a25-411c-9d52-de2babc962e8",
+          "required": false
+        },
+        {
+          "variable_id": "1e13dab3-47ef-4ee6-b75d-7012dd1b4b90",
+          "required": false
+        },
+        {
+          "variable_id": "24cb4339-bfb9-4a82-8272-4d0965df80f4",
+          "required": false
+        },
+        {
+          "variable_id": "f7447483-60e0-468e-b5db-c9c68f9387db",
+          "required": false
+        },
+        {
+          "variable_id": "7ffa9317-5090-4969-89f0-f23c52ff873c",
+          "required": false
+        }
+      ],
+      "output_variables": [
+        {
+          "variable": {
+            "id": "aef7920d-2bb6-475c-a22c-d7408e1ba843",
+            "name": "Final Report",
+            "data_type": "string",
+            "required": false
+          },
+          "expected_output_id": "text"
+        }
+      ],
+      "deletable": true,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    },
+    {
+      "id": "end::8eZDnb4GFrkVu3n0o6_nM::case_false",
+      "type": "end",
+      "position": {
+        "x": 0,
+        "y": 2398
+      },
+      "data": {
+        "outputs": [
+          {
+            "key": "Final Report",
+            "required": false,
+            "is_dynamic": true,
+            "variable_id": "aef7920d-2bb6-475c-a22c-d7408e1ba843"
+          }
+        ],
+        "title": "End",
+        "dynamic_output_variable_id": "aef7920d-2bb6-475c-a22c-d7408e1ba843"
+      },
+      "input_variables": [
+        {
+          "variable_id": "aef7920d-2bb6-475c-a22c-d7408e1ba843",
+          "required": false
+        }
+      ],
+      "output_variables": [],
+      "deletable": false,
+      "sourcePosition": "bottom",
+      "targetPosition": "top"
+    }
+  ],
+  "edges": [
+    {
+      "id": "xy-edge__startoutput-pBFLlGnXiiNvLNPZNS6mo",
+      "source": "start",
+      "target": "pBFLlGnXiiNvLNPZNS6mo",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__pBFLlGnXiiNvLNPZNS6mooutput-XMc1oVj8RL-o_uwU2OA3M",
+      "source": "pBFLlGnXiiNvLNPZNS6mo",
+      "target": "XMc1oVj8RL-o_uwU2OA3M",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__XMc1oVj8RL-o_uwU2OA3Moutput-8eZDnb4GFrkVu3n0o6_nM",
+      "source": "XMc1oVj8RL-o_uwU2OA3M",
+      "target": "8eZDnb4GFrkVu3n0o6_nM",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__lK2vsNuYHSHikYPkcOtLcoutput-endinput",
+      "source": "lK2vsNuYHSHikYPkcOtLc",
+      "target": "end",
+      "sourceHandle": "output",
+      "targetHandle": "input"
+    },
+    {
+      "id": "841sFyX1Wwz4NbSp89NBb",
+      "source": "8eZDnb4GFrkVu3n0o6_nM",
+      "target": "lK2vsNuYHSHikYPkcOtLc",
+      "sourceHandle": "case_true",
+      "targetHandle": null,
+      "type": "conditional",
+      "data": {
+        "branchType": "met"
+      }
+    },
+    {
+      "id": "xy-edge__8eZDnb4GFrkVu3n0o6_nMcase_false-jq0OucdUEhkWmZb64SmRo",
+      "source": "8eZDnb4GFrkVu3n0o6_nM",
+      "target": "jq0OucdUEhkWmZb64SmRo",
+      "sourceHandle": "case_false",
+      "targetHandle": null,
+      "type": "conditional",
+      "data": {
+        "branchType": "not_met"
+      }
+    },
+    {
+      "id": "bccO2PCIp6komDEKQCm8o",
+      "source": "jq0OucdUEhkWmZb64SmRo",
+      "target": "8PcqggtTatkSO6AGb8-6V",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__ZZJd1MRLyBqsjME5ImjG7output-XFuPi87ciyI85hx0RDbFW",
+      "source": "ZZJd1MRLyBqsjME5ImjG7",
+      "target": "XFuPi87ciyI85hx0RDbFW",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__XFuPi87ciyI85hx0RDbFWoutput-x8nlT0z-mEYT2tHIFXVzo",
+      "source": "XFuPi87ciyI85hx0RDbFW",
+      "target": "x8nlT0z-mEYT2tHIFXVzo",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__x8nlT0z-mEYT2tHIFXVzooutput-UN6_Mg9muurMUVia94fQh",
+      "source": "x8nlT0z-mEYT2tHIFXVzo",
+      "target": "UN6_Mg9muurMUVia94fQh",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__nK8LD1qrX2Qs7iW7YvMShcase_true-ZZJd1MRLyBqsjME5ImjG7",
+      "source": "nK8LD1qrX2Qs7iW7YvMSh",
+      "target": "ZZJd1MRLyBqsjME5ImjG7",
+      "sourceHandle": "case_true",
+      "targetHandle": null,
+      "type": "conditional",
+      "data": {
+        "branchType": "met"
+      }
+    },
+    {
+      "id": "xy-edge__8PcqggtTatkSO6AGb8-6Voutput-H-etkrCV5t-LhR51tITU6",
+      "source": "8PcqggtTatkSO6AGb8-6V",
+      "target": "H-etkrCV5t-LhR51tITU6",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__H-etkrCV5t-LhR51tITU6output-nK8LD1qrX2Qs7iW7YvMSh",
+      "source": "H-etkrCV5t-LhR51tITU6",
+      "target": "nK8LD1qrX2Qs7iW7YvMSh",
+      "sourceHandle": "output",
+      "targetHandle": null
+    },
+    {
+      "id": "xy-edge__nK8LD1qrX2Qs7iW7YvMShcase_false-iOyKB2sREcWmg2FIFqWBt",
+      "source": "nK8LD1qrX2Qs7iW7YvMSh",
+      "target": "iOyKB2sREcWmg2FIFqWBt",
+      "sourceHandle": "case_false",
+      "targetHandle": null,
+      "type": "conditional",
+      "data": {
+        "branchType": "not_met"
+      }
+    },
+    {
+      "id": "xy-edge__iOyKB2sREcWmg2FIFqWBtoutput-end::nK8LD1qrX2Qs7iW7YvMSh::case_falseinput",
+      "source": "iOyKB2sREcWmg2FIFqWBt",
+      "target": "end::nK8LD1qrX2Qs7iW7YvMSh::case_false",
+      "sourceHandle": "output",
+      "targetHandle": "input"
+    },
+    {
+      "id": "hhrZxLuap8LNs1YIhaTeG",
+      "source": "UN6_Mg9muurMUVia94fQh",
+      "target": "end::8eZDnb4GFrkVu3n0o6_nM::case_false",
+      "sourceHandle": "output",
+      "targetHandle": "input"
+    }
+  ]
+}
